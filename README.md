@@ -1,2 +1,1 @@
-# graguate
-nju
+graguate
