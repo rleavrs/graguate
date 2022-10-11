@@ -107,14 +107,37 @@ AIMA
    3. 状态转移
    4. 结果判定
    5. 代价评估
+   
 2. 对搜索问题的性能分析**[3]**
    1. 完备性：是否有解
    2. 最优性：最低代价
    3. 复杂性：时空复杂
+   
+3. 关于为什么要引入搜索问题
 
+   在AI领域中的很多问题对其求解是NP / NP complate，所以很难对其直接求解，故而只能采用搜索的方法得到解
 
+简单搜索问题伪代码如下
 
-
+```pseudocode
+% 给定传感器信息 求取 对给定问题的行动序列
+% 我们规定，将问题定义为简单开放闭环，即得到规划动作后无视传感器信息
+function	SIMPLE_SEARCH(percept)	return an action
+	var:seq		an action sequence,initailly empty
+    	state	some description of currenct world
+    	goal	a goal,initailly null
+    	problem	a problem formulaiton
+    % code
+    state := UPDATE_STATE(state,percept)	% 获取当前状态
+    if seq is empty then					% 队列判空
+    	goal := FORMULATE_GOAL(state)		% 优先判定当前状态是否为goal
+    	problem := FORMULATE_PROBLEM(state,goal)	% 根据当前状态和goal将问题形式化
+    	seq := SEARCH(problem)				% 对形式化问题搜索解得到动作序列
+    	if seq = failure	then return null
+	action := FIRST(seq)					% 对返回结果（动作序列）赋值
+	seq := REST(seq)						% 释放已规划序列
+	return action
+```
 
 
 
@@ -124,49 +147,243 @@ AIMA
 
 ### 宽度优先搜索
 
+基本思想：在下一层的任何节点拓展之前，搜索树上本层的所有节点应该已经被拓展过
+
+性能分析：
+
+伪代码如下
+
+```pseudocode
+% 对于给定形式化问题，return一个解SOLUTION(node) or failure
+function BREADTH_FIRST_SEARCH(problem)	return a solution or failure
+	var:frontier	a node quene
+		node		Search-Tree node,including state and child node
+		explred		a set of expolred node(state)
+		SOLUTION	a function of find solution	to given node
+	% code
+	node :=	problem.INITIAL_STATE()				% 根据给定problem初始化节点
+	if problem.GOAL_TEST(node.STATE)	then return SOLUTION(node)	% goal判定
+	frontier := INSERT(node, frontier)
+	explored = null
+	loop do
+		if EMPTY(frontier)		then return failure
+    	node := POP(frontier)						% 获取新节点
+    	expolred := INSERT(node.STATE,expolred)		% 对该节点标记expolred
+    	for each action in problem.ACTIONS(node.STATES) do	% 遍历所有可执行动作遍历得到子节点
+     		child := CHILD_NODE(problem,node,action)		% 获取当前节点的子节点
+       		if child.STATE is not in explored or frontier then
+       			if problem.GOAL_TEST(child.STATE)	then return SOLUTION(child)
+       			frontier := INSERT(child, frontier)			% 将该子节点放入队列中
+```
+
 ### 一致代价搜索
+
+基本思想：不再拓展最近的节点，转而每次拓展路径代价最小$g(n)$的节点$n$
+
+特别的，当所有节点之间的路径代价都一致时，其等价于宽度优先搜索
+
+性能分析：
+
+伪代码如下
+
+```pseudocode
+function UNIFORM_COST_SEARCH(problem)	return solution(node) or failure
+	val:frontier	a priorty quene orderd by PATH_COST,with node as the only element
+	
+	code:
+	node := problem.INTIAL_NODE()
+	frontier = INSERT(node, frontier)
+	expored = null
+	
+	loop do
+		if(EMPTY(frontier))		then return failure
+		node := POP(frontier)							% 得到新节点（必为当前状态代价最低节点）
+        if problem.GOAL_TEST(node)		then return SOLUTION(node)
+		expored := PUSH_BACK(node.STATE)			 
+		for each action in problem.ACTION(node.STATE)	do
+			child := CHILD_NODE(problem,node,action)	% 得到子节信息，内置STATE,COST
+            if(child.STATE)	is not in expolred or frontier then
+            	frontier := INSERT(child,frontier)		% 放入优先级队列
+            else if child.STATE is in frontier with higher PAHT_COST then
+            	replace that frontier node with child	% 更改优先级队列顺序
+```
 
 ### 深度优先搜索
 
+基本思想
+
+性能分析
+
+
+
 ### 深度迭代搜索
+
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+% 利用limit进行递归搜索
+function DEPTH_LIMIT_SEARCH(problem,limit)	return SOLUTION(node) or false/cutoff
+	return RECURSIVE_DLS(MAKE_NODE(problem.INITIAL_STATE),problem,limit)
+
+function RECURSIVE_DLS(node,problem,limit)		return SOLUTION(node) or false/cutoff
+	% code:
+	node := problem.INITIAL_STATE()
+	if(problem.GAOL_TEST(node))		then return SOLUTION(node)
+	else if limit =  0 then return cut_off
+	else
+		cutoff_occureed := false
+		for each action in problem.ACTIONS(node.STATE) do	% 遍历每个节点
+			child := CHILD_NODE(problem,node,action)
+			reuslt := RECURSIVE_DLS(child,problem,limit - 1)
+			if result not is cutoff then cutoff_occurred = true
+			else if result not is false	return result
+        if cutoff_occurred		then return cutoff	else return false
+```
+
+---
 
 > 有信息搜索
 
-### 贪心搜索
-
 ### A*搜索
+
+基本思想
+
+性能分析
+
+### 递归最佳优先搜索（RBFS）
+
+伪代码如下
+
+```pseudocode
+function RECURSIVE_BEST_FIRST_SEARCH(problem)		return SOLUTION(node) or false
+	return RBFS(problem,MAKE_NODE(problem.INITIAL_STATE),\infty)
+
+function RBFS(problem,node,f_limit)	return SOLUTION(node) or false and a new f*cost limit
+	% code
+	if problem.GOAL_TEST(node.STATE)	then return SOLUTION(node)
+	successors := []
+	for each action in problem.ACTIONS(node.STATE)	do
+		add CHILD_NODE(problem,node,action)	into successors
+	if successors if empty then return false.\infty
+	for each s in successors do 
+		s.f := max(s.g + s.h,node.f)
+	loop do
+		best := the lowest f-value node in successors
+		if best.f > f_limit		then return false,best.f
+		alternative := the second_lowest f_value among successors
+		result,best.f := RBFS(problem,best,min(f.limit,alternative))
+		if result is not false		then return result
+```
+
+
 
 ## Part 2	超越经典搜索
 
 ### 局部搜索
 
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
+
 ### 爬山法
+
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
+
+
 
 ### 模拟退火
 
-### 局部束搜索
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
+
+局部束搜索
 
 ### 遗传算法
 
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
+
+
+
+### 与或搜索
+
+
+
+
+
 ### 联机搜索
+
+基本思想
+
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
 
 
 
 ## Part 3	对抗搜索
 
-### 博弈形式下的搜索问题
+### 极大极小搜索
 
-### Alpha、Beta算法
+伪代码如下
 
-### 剪枝优化
+
+
+
+
+### Alpha、Beta剪枝优化搜索
+
+伪代码如下
 
 
 
 ## Part 4	CSP
 
+### 弧相容算法搜索 -AC3
 
 
-### 回溯搜索
+
+### CSP简单回溯搜索
+
+
+
+### 结构CSP
 
 
 
@@ -193,31 +410,3 @@ AIMA
 
 
 # 学习
-
-<pre class="pseudocode">
-% This quicksort algorithm is extracted from Chapter 7, Introduction to Algorithms (3rd edition)
-\begin{algorithm}
-\caption{Quicksort}
-\begin{algorithmic}
-\PROCEDURE{Quicksort}{$A, p, r$}
-    \IF{$p < r$} 
-        \STATE $q = $ \CALL{Partition}{$A, p, r$}
-        \STATE \CALL{Quicksort}{$A, p, q - 1$}
-        \STATE \CALL{Quicksort}{$A, q + 1, r$}
-    \ENDIF
-\ENDPROCEDURE
-\PROCEDURE{Partition}{$A, p, r$}
-    \STATE $x = A[r]$
-    \STATE $i = p - 1$
-    \FOR{$j = p$ \TO $r - 1$}
-        \IF{$A[j] < x$}
-            \STATE $i = i + 1$
-            \STATE exchange
-            $A[i]$ with $A[j]$
-        \ENDIF
-        \STATE exchange $A[i]$ with $A[r]$
-    \ENDFOR
-\ENDPROCEDURE
-\end{algorithmic}
-\end{algorithm}
-</pre>
