@@ -469,6 +469,34 @@ function GENETIC_ALGORITHM(population,FITNESS_FN)		return an individual
 	return the best individual in population,according to FITNESS_FN
 ```
 
+### 粒子群优化
+
+伪代码如下
+
+```pseudocode
+% 
+function PARTICLE_SWARM_OPTIMIZAITON()
+	% code
+	for each particle
+		Initialize particle
+	do 
+		for each particle
+			Calcululate fitness value
+			if fitness value > best fitness value in history
+				set fitness vlue as new pBest
+			Choose particle with best fitness value of all paticles as gBest 
+		for each particle
+			Calculate partcle velocity
+			Update particle position
+	while maximun iterations or minimum error criteria is not attened
+```
+
+
+
+
+
+
+
 
 
 ---
@@ -490,7 +518,23 @@ function GENETIC_ALGORITHM(population,FITNESS_FN)		return an individual
 伪代码如下
 
 ```pseudocode
+% 与或搜索树
+function AND_OR_GRAPH_SEARCH(problem)		return a conditional plan or false
+	OR_SEARCH(problem.INITIAL_STATE,problem,[])
 
+function OR_SEARCH(state,problem,path)		return a conditional plan or false
+	if problem.GOAL_TEST(state)		then return the empty plan
+	if state is on path		then return false
+	for each action in problem.ACTIONS(state) do
+		plan := AND_SEARCH(RESULTS(state, action),,[state | path])
+		if plan not is false 	then return [action | plan]
+	return false 
+	
+function AND_SEARCH(states, problem, path)		return a contional plan or false
+	for each s_i in states do
+		plan_i := OR_SEARCH(s,problem,path)
+		if	plan_i = false 	then return false
+	return [if s_i then plan_i ...]
 ```
 
 
@@ -504,7 +548,11 @@ function GENETIC_ALGORITHM(population,FITNESS_FN)		return an individual
 伪代码如下  
 
 ```pseudocode
-
+% 
+function ONLINE_DFS_AGENT(s)	return an action
+	var:s	a percept that identifies the current state
+	
+	if GOAL_TEST(s)		then return stop
 ```
 
 ### 在线搜索
