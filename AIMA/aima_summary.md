@@ -343,61 +343,155 @@ function RBFS(problem,node,f_limit)	return SOLUTION(node) or false and a new f*c
 
 ### 局部搜索
 
-基本思想
+条件：环境时可观察的、确定的、已知的，问题解是一个环境序列
 
-性能分析
+基本思想：考虑从一个或多个状态进行评价和修改，而不是系统地探索从初始状态开始的路径
 
-伪代码如下
+适用范围：关注解状态**而不是路径代价**的问题
 
-```pseudocode
+缺点：非系统化
 
-```
+优点：
 
-### 爬山法
+1. 很少的内存——通常为常数
+2. 经常能在系统化算法不适用的很大的（连续）状态空间中找到合理的解
 
-基本思想
+其他应用：解决纯粹的最优化问题，其目标是根据目标函数找到最佳状态
 
-性能分析
-
-伪代码如下
-
-```pseudocode
-
-```
-
-
-
-### 模拟退火
+### 局部思想——爬山法（贪婪局部搜索）
 
 基本思想
 
 性能分析
 
+存在状态
+
+1. 局部最大值 < 全局最大值
+2. 山脊：造成了一系列的局部最大值，贪婪很难处理
+3. 高原（山肩）：可能是一块平的局部最大值，造成迷路
+
+优化：随机重启爬山法——间接改变从来不会下山的现状
+
 伪代码如下
 
 ```pseudocode
-
+% 爬山法 （最陡上升版本）
+function HILL_CLIMBING(problem)		return a state that is a local maximum
+	% code
+	current := MAKE_NODE(problem.INITIAL_STATE)		% 任意局部节点初始化
+	loop do
+		neighbor := a highest_valued successor of current	% 获取临近状态
+		if neighbor.VALUE <= current.VALUE	then return current.VALUE	% 当前值为局部最大
+		current := neighbor		% enter loop
 ```
 
-局部束搜索
 
-### 遗传算法
 
-基本思想
+### 局部思想——模拟退火
+
+基本思想：允许下山的随机爬山法，并随时间推移下山时间越来越少
+
+具体的：以评估值$\Delta E$和温度$T$表示随机移动的概率，移动的结果反作用于评估值和温度
+
+性能评估：
+
+1. 解的最优性：如果调度让T下降的足够慢，算法找到全局最优解的概率逼近于1
+
+应用：
+
+1. VLSI布局问题
+2. 工厂调度
+3. 其他大型最优化任务
+
+伪代码如下
+
+```pseudocode
+% 模拟退火 
+function SIMULATED_ANNEALING(problem,schedule)		returns a solution state
+	val:schedule	a mapping from time to "temperature"
+	% code
+	current := MAKE_NODE(problem.INITIAL_STATE)		% 给定当前局部状态
+	for t = 1 to \infty do		
+		T := schedule(t)							% 由schedule决定当前温度
+		if T = 0	then return current				% 循环终止条件
+		next := a random selected successor of current	% 随机下山（或上山）
+		DeltaE := next.VALUE - CURRENT.VALUE		% 评估值
+		if DeltaE > 0	then current := next		% 情况变好则Next
+		else current := newx only wiht probability e^{\DeataE / T}	% 情况变差则以概率(<1)接受
+```
+
+### 局部搜索——局部束搜索
+
+基本思想：从随机K个状态开始搜索，并同时记录其后继，找到GOAL则终止
+
+性能评估：对于最简单的局部束，最终所有的后继会聚集在一小块区域，代价比爬山法还要高昂
+
+优化：随机局部束搜索：自然选择，根据适当的值产生合适的后继
+
+### 局部搜索——遗传算法（随机束搜索的变形）
+
+基本思想：以适度值函数产生评估值，以此产生后继（伴随着杂交、变异过程）
 
 性能分析
 
+适用条件：临近位置较为相关（因为只有很少的临近区可以受益）
+遗传算法在模式具备真正与解相对应时才工作的最好
+
+应用：
+
+1. 电路布局
+2. 作业车间调度问题
+
 伪代码如下
 
 ```pseudocode
+% 遗传算法
+function REPRODUCE(x,y)		return an individual		% 杂交
+	val:x,y		parent individuals
+	% code
+	n := length(x)
+	c := random number from 1 to n
+	return APPEND(SUBSTRING(x,1,c),SUBSTRING(y,c,n))
 
+function GENETIC_ALGORITHM(population,FITNESS_FN)		return an individual
+	val:FITNESS_FN		a function that measures the fitness of an individual
+	% code
+	while
+		new_population := empty	set
+		for i = 1 to SIZE(population) do
+			x := RANDOM_SELECTION(population, FITNESS_FN)	
+			y := RANDOM_SELECTION(populaiton, FITNESS_FN)
+			child := REPRODUCE(x,y)					% 杂交
+			if(samll random probability is fit enough)	then child := MUTATE(child)
+			add child to new_population
+		population := new _population
+	until some individual is fit enough,or enough time has elasped
+	return the best individual in population,according to FITNESS_FN
 ```
 
 
+
+---
+
+条件放开：不再强求环境的确定性和可观察性
+
+基本思想：Agent需要对状态进行跟踪
+
+具体的：需要考虑当传感器接收到应急情况时应该做什么
+
+---
 
 ### 与或搜索
 
+基本思想
 
+性能分析
+
+伪代码如下
+
+```pseudocode
+
+```
 
 
 
@@ -407,11 +501,15 @@ function RBFS(problem,node,f_limit)	return SOLUTION(node) or false and a new f*c
 
 性能分析
 
-伪代码如下
+伪代码如下  
 
 ```pseudocode
 
 ```
+
+### 在线搜索
+
+基本思想：对完全未知的空间从头开始搜素
 
 
 
