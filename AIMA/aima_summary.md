@@ -571,15 +571,9 @@ function ONLINE_DFS_AGENT(s)	return an action
 
 伪代码如下
 
-
-
-
-
 ### Alpha、Beta剪枝优化搜索
 
 伪代码如下
-
-
 
 ## Part 4	CSP
 
@@ -635,9 +629,19 @@ k相容
 
 ## Part 1	逻辑Agent
 
+
+
+
+
 ## Part 2	一阶逻辑
 
+
+
+
+
 ## Part 3	一阶逻辑的推理
+
+
 
 
 
